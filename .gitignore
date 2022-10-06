@@ -1,0 +1,12 @@
+# Racket-generated files
+compiled/
+doc/
+
+# Editor-generated files
+*~
+\#*
+.\#*
+.vscode/
+
+# OS-generated files
+.DS_Store
