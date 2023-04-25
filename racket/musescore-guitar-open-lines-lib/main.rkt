@@ -11,6 +11,8 @@
          "which.rkt")
 (module+ main
   (require racket/cmdline))
+(module+ test
+  (require rackunit))
 
 ;; TODO: replace these with something more sensible and configurable
 (define-runtime-path mscore
@@ -124,7 +126,7 @@
   ;; copy musicxml into conversion-dir
   (define conversion-path
     (build-path conversion-dir (string-append name-string ".musicxml")))
-  (copy-file path conversion-path)
+  (copy-file path conversion-path #:exists-ok? #t)
   ;; conversion to pdf
   (musicxml-parts->pdf-parts name-string (list conversion-path)))
 
@@ -174,20 +176,59 @@
   (for/list ([ly (in-list lilypond-raw-parts)])
     (define openlines-ly (path-replace-extension ly #"-openlines.ly"))
     (with-output-to-file openlines-ly
-      (λ ()
-        (system*
-         sed
-         "-e"
-         "s/:m5 /:m /g"
-         "-e"
-         "s/\\( *\\)\\\\set Staff.shortInstrumentName = \"Guit.\"/&\\n\\1\\\\override Staff.StaffSymbol.line-positions = #'(-11 -8 -5 -2 0 3)\\n\\1\\\\override Staff.StaffSymbol.ledger-positions = #'(-9 -6 -3 2 5 7 9)\\n/g"
-         ly))
+      (λ () (write-string (lilypond-string->openlines (file->string ly))))
       #:exists 'replace)
     openlines-ly))
 
 ;; String (Listof FilePath) -> (Listof FilePath)
 (define (lilypond-parts->pdf-parts name-string lilypond-parts)
-  ;(define lilypond (which "lilypond"))
+  (define lilypond (which "lilypond"))
   (for/list ([ly (in-list lilypond-parts)])
     (system* lilypond ly)
     (path-replace-extension ly #".pdf")))
+
+;; ---------------------------------------------------------
+
+;; lilypond-string->openlines : String -> String
+(define (lilypond-string->openlines ly)
+  (regexp-replaces
+   ly
+   '([#rx":m5 "
+      ":m "]
+     [#rx"( *)\\\\set Staff.shortInstrumentName = \"Guit.\""
+      #<<```
+&
+\1\\override Staff.StaffSymbol.line-positions = #'(-11 -8 -5 -2 0 3)
+\1\\override Staff.StaffSymbol.ledger-positions = #'(-9 -6 -3 2 5 7 9)
+
+```
+      ])))
+
+(module+ test
+  (check-equal? (lilypond-string->openlines
+                 #<<```
+﻿            \set Staff.instrumentName = "Guitar"
+            \set Staff.shortInstrumentName = "Guit."
+            
+            \context Staff << 
+                \mergeDifferentlyDottedOn\mergeDifferentlyHeadedOn
+                \context Voice = "PartPTwoVoiceOne" {  \voiceOne \PartPTwoVoiceOne }
+                \context Voice = "PartPTwoVoiceTwo" {  \voiceTwo \PartPTwoVoiceTwo }
+                >>
+```
+                 )
+                #<<```
+﻿            \set Staff.instrumentName = "Guitar"
+            \set Staff.shortInstrumentName = "Guit."
+            \override Staff.StaffSymbol.line-positions = #'(-11 -8 -5 -2 0 3)
+            \override Staff.StaffSymbol.ledger-positions = #'(-9 -6 -3 2 5 7 9)
+
+            
+            \context Staff << 
+                \mergeDifferentlyDottedOn\mergeDifferentlyHeadedOn
+                \context Voice = "PartPTwoVoiceOne" {  \voiceOne \PartPTwoVoiceOne }
+                \context Voice = "PartPTwoVoiceTwo" {  \voiceTwo \PartPTwoVoiceTwo }
+                >>
+```
+                ))
+
