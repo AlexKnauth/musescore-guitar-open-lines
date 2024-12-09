@@ -16,10 +16,7 @@
 
 ;; TODO: replace these with something more sensible and configurable
 (define-runtime-path mscore
-  "/Applications/MuseScore/MuseScore 3.app/Contents/MacOS/mscore")
-
-(define-runtime-path lilypond
-  "/Applications/LilyPond/LilyPond.app/Contents/Resources/bin/lilypond")
+  "/Applications/MuseScore 4.app/Contents/MacOS/mscore")
 
 (module+ main
   (define recursive-mode (make-parameter #f))
@@ -151,8 +148,9 @@
   (define conversion-job-json
     (list
      (hasheq 'in (path->string path/conversion-dir)
-             'out (list (string-append name-string ".musicxml")
-                        (list (string-append name-string "-") ".musicxml")))))
+             'out (string-append name-string ".musicxml"))
+     (hasheq 'in (path->string path/conversion-dir)
+             'out (list (list (string-append name-string "-") ".musicxml")))))
   (call-with-output-file*
    conversion-job-path
    (λ (out)
