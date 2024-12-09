@@ -227,8 +227,14 @@
 (define (lilypond-string->openlines ly)
   (regexp-replaces
    ly
-   '([#rx":m5 "
+   '([#rx":5 "
+      " "]
+     [#rx":m5 "
       ":m "]
+     [#rx"\\\\startTrillSpan"
+      ""]
+     [#rx"\\\\stopTrillSpan"
+      ""]
      [#rx"( *)\\\\set Staff.shortInstrumentName = \"Guit.\""
       #<<```
 &
