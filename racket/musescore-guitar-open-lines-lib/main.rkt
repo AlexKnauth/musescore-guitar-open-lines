@@ -20,6 +20,7 @@
 
 (module+ main
   (define recursive-mode (make-parameter #f))
+  (define watch-mode (make-parameter #f))
   (define pdf-paths
     (command-line
      #:program "musescore-guitar-open-lines"
@@ -27,26 +28,51 @@
      [("-r" "--recursive")
       "Convert recursively in sub-directories"
       (recursive-mode #t)]
+     [("-w" "--watch")
+      "Continuously watch for updates"
+      (watch-mode #t)]
      #:args paths
-     (apply main #:r (recursive-mode) paths)))
+     (apply main #:r (recursive-mode) #:w (watch-mode) paths)))
   (unless (empty? pdf-paths)
     (displayln "output pdf files:")
     (for ([p (in-list pdf-paths)])
       (displayln (find-relative-path (current-directory) p)))))
 
 ;; #:r Boolean PathString ... -> (Listof FilePath)
-(define (main #:r [r? #f] . paths)
+(define (main #:r [r? #f] #:w [w? #f] . paths)
   (cond
-    [(empty? paths) (paths-openlines #:r r? (list (current-directory)))]
-    [else (paths-openlines #:r r? paths)]))
+    [(empty? paths) (paths-openlines #:r r? #:w w? (list (current-directory)))]
+    [else (paths-openlines #:r r? #:w w? paths)]))
 
 ;; #:r Boolean (Listof PathString) -> (Listof FilePath)
-(define (paths-openlines #:r [r? #f] paths)
-  (files-openlines (paths->file-paths #:r r? paths)))
+(define (paths-openlines #:r [r? #f] #:w [w? #f] paths)
+  (files-openlines #:w w? (paths->file-paths #:r r? paths)))
 
 ;; (Listof PathString) -> (Listof FilePath)
-(define (files-openlines paths)
-  (append-map file-openlines paths))
+(define (files-openlines #:w [w? #f] paths)
+  (cond
+    [w? (watch-openlines paths)]
+    [else (append-map file-openlines paths)]))
+
+;; (Listof PathString) -> (Listof FilePath)
+(define (watch-openlines paths)
+  (define before (current-seconds))
+  (define r (map file-openlines paths))
+  (let loop ([before before] [r r])
+    (cond
+      [(input-done?) (append* r)]
+      [else
+       (define before2 (current-seconds))
+       (define r2
+         (for/fold ([r r])
+                   ([path (in-list paths)] [i (in-naturals)])
+           (cond
+             [(modified-since? path before)
+              (list-set r i (file-openlines path))]
+             [else r])))
+       (cond
+         [(eq? r2 r) (loop before r)]
+         [else (loop before2 r2)])])))
 
 ;; PathString -> (Listof FilePath)
 (define (file-openlines path)
@@ -80,6 +106,16 @@
      (for/list ([p (in-directory path (use-dir? #:r r?))] #:when (can-convert? p))
        p)]
     [else '()]))
+
+(define (input-done? [in (current-input-port)])
+  (or (port-closed? in)
+      (and (sync/timeout 0 in) (eof-object? (read-byte in)))))
+
+(define (modified-since? path before)
+  (define modified (file-or-directory-modify-seconds path #f (λ () #f)))
+  (cond
+    [modified (< before modified)]
+    [else #false]))
 
 ;; ---------------------------------------------------------
 
