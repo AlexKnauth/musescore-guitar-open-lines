@@ -231,10 +231,19 @@
       " "]
      [#rx":m5 "
       ":m "]
+     [#rx":5/"
+      "/"]
+     [#rx":m5/"
+      ":m/"]
      [#rx"\\\\startTrillSpan"
       ""]
      [#rx"\\\\stopTrillSpan"
       ""]
+     [#px"(\\\\fret-diagram #\"[^\n\"]*c:6-1-)(\\d+)(;[^\n\"]*)x"
+      #<<```
+\1\2\3\2
+```
+      ]
      [#rx"( *)\\\\set Staff.shortInstrumentName = \"Guit.\""
       #<<```
 &
@@ -269,6 +278,16 @@
                 \context Voice = "PartPTwoVoiceOne" {  \voiceOne \PartPTwoVoiceOne }
                 \context Voice = "PartPTwoVoiceTwo" {  \voiceTwo \PartPTwoVoiceTwo }
                 >>
+```
+                )
+
+  (check-equal? (lilypond-string->openlines
+                 #<<```
+\fret-diagram #"h:6;c:6-1-4;6-4;5-x;4-6;3-6;2-5;1-4;"
+```
+                 )
+                #<<```
+\fret-diagram #"h:6;c:6-1-4;6-4;5-4;4-6;3-6;2-5;1-4;"
 ```
                 ))
 
