@@ -233,14 +233,10 @@
 (define (lilypond-string->openlines ly)
   (regexp-replaces
    ly
-   '([#rx":5 "
-      " "]
-     [#rx":m5 "
-      ":m "]
-     [#rx":5/"
-      "/"]
-     [#rx":m5/"
-      ":m/"]
+   '([#px":5\\b"
+      ""]
+     [#px":m5\\b"
+      ":m"]
      [#rx"\\\\startTrillSpan"
       ""]
      [#rx"\\\\stopTrillSpan"
@@ -284,6 +280,36 @@
                 \context Voice = "PartPTwoVoiceOne" {  \voiceOne \PartPTwoVoiceOne }
                 \context Voice = "PartPTwoVoiceTwo" {  \voiceTwo \PartPTwoVoiceTwo }
                 >>
+```
+                )
+
+  (check-equal? (lilypond-string->openlines
+                 #<<```
+PartPOneVoiceTwoChords =  \chordmode {
+    \partial 4 s4 | % 1
+    c2.:5 | % 2
+    g2.:5 | % 3
+    g2.:5/f | % 4
+    c2.:5/e | % 5
+    c2.:5 | % 6
+    f1:5 | % 7
+    g2.:6 | % 8
+    c2.:5 \bar "|."
+    }
+```
+                 )
+                #<<```
+PartPOneVoiceTwoChords =  \chordmode {
+    \partial 4 s4 | % 1
+    c2. | % 2
+    g2. | % 3
+    g2./f | % 4
+    c2./e | % 5
+    c2. | % 6
+    f1 | % 7
+    g2.:6 | % 8
+    c2. \bar "|."
+    }
 ```
                 )
 
