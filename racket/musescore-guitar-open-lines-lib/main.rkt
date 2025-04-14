@@ -14,6 +14,12 @@
 (module+ test
   (require rackunit))
 
+;; ---------------------------------------------------------
+
+;; racket -l musescore-guitar-open-lines -- example.mscz
+
+;; ---------------------------------------------------------
+
 ;; TODO: replace these with something more sensible and configurable
 (define-runtime-path mscore
   "/Applications/MuseScore 4.app/Contents/MacOS/mscore")
