@@ -241,7 +241,7 @@
       ""]
      [#rx"\\\\stopTrillSpan"
       ""]
-     [#px"(\\\\fret-diagram #\"[^\n\"]*c:6-1-)(\\d+)(;[^\n\"]*)x"
+     [#px"(\\\\fret-diagram\\s+#\"[^\n\"]*c:6-1-)(\\d+)(;[^\n\"]*)x"
       #<<```
 \1\2\3\2
 ```
@@ -320,6 +320,52 @@ PartPOneVoiceTwoChords =  \chordmode {
                  )
                 #<<```
 \fret-diagram #"h:6;c:6-1-4;6-4;5-4;4-6;3-6;2-5;1-4;"
+```
+                )
+
+  (check-equal? (lilypond-string->openlines
+                 #<<```
+PartPOneVoiceTwo =  \relative c {
+    \clef "treble_8" \time 3/4 \key c \major \partial 4 s4 | % 1
+    \stemDown <c e>2. ^\markup { \fret-diagram
+        #"6-x;5-3;4-2;3-o;2-1;1-x;" } | % 2
+    \stemDown <g b d g>2. ^\markup { \fret-diagram
+        #"6-3;5-2;4-o;3-o;2-o;1-x;" } | % 3
+    \stemDown <g b d>2. ^\markup { \fret-diagram
+        #"6-3;5-2;4-o;3-o;2-o;1-x;" } | % 4
+    \stemDown <c e g>2. ^\markup { \fret-diagram
+        #"6-x;5-3;4-2;3-o;2-1;1-x;" } | % 5
+    \stemDown <c e g c>2. ^\markup { \fret-diagram
+        #"6-x;5-3;4-2;3-o;2-1;1-o;" } | % 6
+    \numericTimeSignature\time 4/4  <f, c' f>1 ^\markup { \fret-diagram
+        #"c:6-1-1;6-1;5-3;4-3;3-2;2-x;1-1;" } | % 7
+    \time 3/4  \stemDown <g b d g b>2. ^\markup { \fret-diagram
+        #"6-3;5-2;4-o;3-o;2-o;1-o;" } | % 8
+    \stemDown <c e g>2. ^\markup { \fret-diagram
+        #"6-x;5-3;4-2;3-o;2-1;1-x;" } \bar "|."
+    }
+```
+                 )
+                #<<```
+PartPOneVoiceTwo =  \relative c {
+    \clef "treble_8" \time 3/4 \key c \major \partial 4 s4 | % 1
+    \stemDown <c e>2. ^\markup { \fret-diagram
+        #"6-x;5-3;4-2;3-o;2-1;1-x;" } | % 2
+    \stemDown <g b d g>2. ^\markup { \fret-diagram
+        #"6-3;5-2;4-o;3-o;2-o;1-x;" } | % 3
+    \stemDown <g b d>2. ^\markup { \fret-diagram
+        #"6-3;5-2;4-o;3-o;2-o;1-x;" } | % 4
+    \stemDown <c e g>2. ^\markup { \fret-diagram
+        #"6-x;5-3;4-2;3-o;2-1;1-x;" } | % 5
+    \stemDown <c e g c>2. ^\markup { \fret-diagram
+        #"6-x;5-3;4-2;3-o;2-1;1-o;" } | % 6
+    \numericTimeSignature\time 4/4  <f, c' f>1 ^\markup { \fret-diagram
+        #"c:6-1-1;6-1;5-3;4-3;3-2;2-1;1-1;" } | % 7
+    \time 3/4  \stemDown <g b d g b>2. ^\markup { \fret-diagram
+        #"6-3;5-2;4-o;3-o;2-o;1-o;" } | % 8
+    \stemDown <c e g>2. ^\markup { \fret-diagram
+        #"6-x;5-3;4-2;3-o;2-1;1-x;" } \bar "|."
+    }
 ```
                 ))
 
